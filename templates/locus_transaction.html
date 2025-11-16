@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakeThemPay - Locus Transaction with AI Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .nav {
+            margin-bottom: 20px;
+        }
+        
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            display: inline-block;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+        
+        .nav a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* Transaction Status */
+        .transaction-status {
+            display: none;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+        
+        /* Agent Steps */
+        .agent-steps {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .step-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ccc;
+            background: #f8f9fa;
+            transition: all 0.3s;
+        }
+        
+        .step-item.analyzing {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .step-item.completed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-agent {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+        
+        .step-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-analyzing {
+            background: #ffc107;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step-description {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .step-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .result-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .result-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .result-borderline {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .result-risky {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Final Decision */
+        .final-decision {
+            display: none;
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .decision-green {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 0 30px rgba(40, 167, 69, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .decision-white {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+        
+        .decision-red {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 0 30px rgba(220, 53, 69, 0.5);
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 30px rgba(40, 167, 69, 0.5); }
+            to { box-shadow: 0 0 50px rgba(40, 167, 69, 0.8); }
+        }
+        
+        .decision-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .decision-explanation {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .decision-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .detail-card {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .detail-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .examples {
+            margin-top: 30px;
+        }
+        
+        .example-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .example-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">← Dashboard</a>
+            <a href="/purchase">Simple Purchase</a>
+        </div>
+        
+        <div class="card">
+            <h1>💳 Locus Transaction with AI Analysis</h1>
+            <p class="subtitle">Send payment via Locus and get real-time AI analysis</p>
+            
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label for="amount">Amount (USDC)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat.capitalize() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recipient_type">Recipient Type</label>
+                    <select id="recipient_type" name="recipient_type" required>
+                        <option value="email">Email</option>
+                        <option value="address">Wallet Address</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="recipient">Recipient</label>
+                    <input type="text" id="recipient" name="recipient" required placeholder="email@example.com or 0x...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="memo">Memo (Optional)</label>
+                    <input type="text" id="memo" name="memo" placeholder="Payment description">
+                </div>
+                
+                <button type="submit" class="btn" id="submitBtn">Send Payment & Analyze</button>
+            </form>
+            
+            <div class="examples">
+                <p style="color: white; margin-bottom: 10px;"><strong>Quick Examples:</strong></p>
+                <button class="example-btn" onclick="loadExample('green')">🟢 Green Example (Normal)</button>
+                <button class="example-btn" onclick="loadExample('red')">🔴 Red Example (Overdraft)</button>
+                <button class="example-btn" onclick="loadExample('white')">⚪ White Example (Too Little)</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing payment and analyzing with AI agents...</p>
+            </div>
+            
+            <div class="transaction-status" id="transactionStatus"></div>
+            
+            <div class="agent-steps" id="agentSteps"></div>
+            
+            <div class="final-decision" id="finalDecision"></div>
+        </div>
+    </div>
+    
+    <script>
+        const examples = {
+            green: {
+                amount: 60,
+                category: 'food',
+                recipient: 'test@example.com',
+                recipient_type: 'email',
+                memo: 'Normal grocery purchase - within budget'
+            },
+            red: {
+                amount: 5000,
+                category: 'shopping',
+                recipient: 'test@example.com',
+                recipient_type: 'email',
+                memo: 'Large purchase - exceeds annual budget'
+            },
+            white: {
+                amount: 15,
+                category: 'entertainment',
+                recipient: 'test@example.com',
+                recipient_type: 'email',
+                memo: 'Small purchase - acceptable but could optimize'
+            }
+        };
+        
+        function loadExample(type) {
+            const example = examples[type];
+            document.getElementById('amount').value = example.amount;
+            document.getElementById('category').value = example.category;
+            document.getElementById('recipient').value = example.recipient;
+            document.getElementById('recipient_type').value = example.recipient_type;
+            document.getElementById('memo').value = example.memo;
+        }
+        
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const transactionStatus = document.getElementById('transactionStatus');
+            const agentSteps = document.getElementById('agentSteps');
+            const finalDecision = document.getElementById('finalDecision');
+            
+            // Reset UI
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            transactionStatus.style.display = 'none';
+            agentSteps.style.display = 'none';
+            finalDecision.style.display = 'none';
+            agentSteps.innerHTML = '';
+            
+            const formData = new FormData(e.target);
+            const data = {
+                amount: parseFloat(formData.get('amount')),
+                category: formData.get('category'),
+                recipient: formData.get('recipient'),
+                recipient_type: formData.get('recipient_type'),
+                memo: formData.get('memo') || `Payment for ${formData.get('category')}`
+            };
+            
+            try {
+                // Step 1: Analyze first (with steps)
+                const analyzeResponse = await fetch('/api/locus/analyze-with-steps', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const analysis = await analyzeResponse.json();
+                
+                if (!analysis.success) {
+                    throw new Error(analysis.error || 'Analysis failed');
+                }
+                
+                // Display agent steps
+                displayAgentSteps(analysis.steps);
+                
+                // Step 2: Send payment (only if not RED)
+                const paymentResponse = await fetch('/api/locus/send-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const payment = await paymentResponse.json();
+                
+                // Display transaction status
+                if (payment.blocked) {
+                    // Transaction was blocked due to RED decision
+                    transactionStatus.className = 'transaction-status status-error';
+                    transactionStatus.innerHTML = `
+                        <h3>🚫 Transaction Blocked</h3>
+                        <p><strong>Reason:</strong> ${payment.reason || 'Financial risk detected'}</p>
+                        <p style="margin-top: 10px;">This transaction was automatically blocked to protect your financial health. Please review the analysis below.</p>
+                    `;
+                    
+                    // Update analysis with blocked transaction's decision
+                    if (payment.analysis) {
+                        if (payment.analysis.decision) {
+                            analysis.decision = payment.analysis.decision;
+                        }
+                        if (payment.analysis.steps) {
+                            analysis.steps = payment.analysis.steps;
+                            // Re-display steps with updated data
+                            displayAgentSteps(analysis.steps);
+                        }
+                    }
+                } else if (payment.success) {
+                    transactionStatus.className = 'transaction-status status-success';
+                    transactionStatus.innerHTML = `
+                        <h3>✓ Payment Successful!</h3>
+                        <p>Your payment of ${data.amount} USDC has been sent to ${data.recipient}</p>
+                    `;
+                } else {
+                    transactionStatus.className = 'transaction-status status-error';
+                    transactionStatus.innerHTML = `
+                        <h3>✗ Payment Failed</h3>
+                        <p>${payment.error || 'Unknown error occurred'}</p>
+                    `;
+                }
+                transactionStatus.style.display = 'block';
+                
+                // Display final decision
+                if (analysis.decision) {
+                    displayFinalDecision(analysis.decision, analysis.steps);
+                }
+                
+            } catch (error) {
+                transactionStatus.className = 'transaction-status status-error';
+                transactionStatus.innerHTML = `
+                    <h3>✗ Error</h3>
+                    <p>${error.message}</p>
+                `;
+                transactionStatus.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayAgentSteps(steps) {
+            const container = document.getElementById('agentSteps');
+            container.innerHTML = '<h2 style="margin-bottom: 20px;">🤖 AI Agent Analysis Steps</h2>';
+            
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `step-item ${step.status}`;
+                
+                let content = `
+                    <div class="step-header">
+                        <div class="step-agent">${step.agent}</div>
+                        <span class="step-status status-${step.status}">${step.status.toUpperCase()}</span>
+                    </div>
+                `;
+                
+                if (step.description) {
+                    content += `<div class="step-description">${step.description}</div>`;
+                }
+                
+                if (step.result) {
+                    const result = step.result;
+                    let statusClass = 'result-ok';
+                    if (result.status === 'BORDERLINE') statusClass = 'result-borderline';
+                    if (result.status === 'RISKY') statusClass = 'result-risky';
+                    
+                    content += `
+                        <div class="step-result">
+                            <span class="result-status ${statusClass}">${result.status}</span>
+                            <span>${result.analysis || ''}</span>
+                            ${result.score !== undefined ? `<div style="margin-top: 8px; font-size: 12px; color: #666;">Score: ${(result.score * 100).toFixed(1)}%</div>` : ''}
+                        </div>
+                    `;
+                }
+                
+                stepDiv.innerHTML = content;
+                container.appendChild(stepDiv);
+                
+                // Animate in
+                setTimeout(() => {
+                    stepDiv.style.opacity = '0';
+                    stepDiv.style.transform = 'translateX(-20px)';
+                    stepDiv.style.transition = 'all 0.3s';
+                    setTimeout(() => {
+                        stepDiv.style.opacity = '1';
+                        stepDiv.style.transform = 'translateX(0)';
+                    }, 10);
+                }, index * 200);
+            });
+            
+            container.style.display = 'block';
+        }
+        
+        function displayFinalDecision(decision, steps) {
+            const container = document.getElementById('finalDecision');
+            const color = decision.color.toLowerCase();
+            
+            container.className = `final-decision decision-${color}`;
+            
+            // Calculate metrics from steps
+            const longevityStep = steps.find(s => s.agent === 'Longevity Agent' && s.status === 'completed');
+            const budgetStep = steps.find(s => s.agent === 'Budget Agent' && s.status === 'completed');
+            const anomalyStep = steps.find(s => s.agent === 'Anomaly Agent' && s.status === 'completed');
+            
+            container.innerHTML = `
+                <div class="decision-title">${decision.color}</div>
+                <div class="decision-explanation">${decision.explanation}</div>
+                
+                <div class="decision-details">
+                    <div class="detail-card">
+                        <div class="detail-label">Longevity Score</div>
+                        <div class="detail-value">${longevityStep ? (longevityStep.result.score * 100).toFixed(0) + '%' : 'N/A'}</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-label">Budget Score</div>
+                        <div class="detail-value">${budgetStep ? (budgetStep.result.score * 100).toFixed(0) + '%' : 'N/A'}</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-label">Auto-Invest</div>
+                        <div class="detail-value">$${decision.auto_invest.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
